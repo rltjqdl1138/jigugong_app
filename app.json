@@ -1,0 +1,13 @@
+{
+  "name": "jigugong",
+  "displayName": "jigugong",
+  "expo": {
+    "name": "jigugong",
+    "slug": "jigugong",
+    "scheme": "jigugong",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
