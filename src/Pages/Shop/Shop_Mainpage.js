@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Keyboard} from 'react-native'
 import Product from './ProductComponent'
+import {Clayful} from '../../Network'
 const LIGHT_GRAY_COLOR = '#E8E8E8'
 const GRAY_COLOR = '#C4C4C4'
 const BACKGROUND_GRAY_COLOR = '#F6F6F6'
@@ -11,8 +12,16 @@ export default class ShopMainpage extends Component {
     constructor(props){
         super(props)
         this.state = {
-            isOpenSearch: false
+            isOpenSearch: false,
+            displayedProducts : []
         }
+    }
+    componentDidMount(){
+        this.getProducts()
+    }
+    getProducts = async()=>{
+        const list = await Clayful.getDisplayItems()
+        console.warn(list)
     }
     closeSearch = ()=>{
         Keyboard.dismiss()

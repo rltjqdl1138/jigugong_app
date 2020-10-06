@@ -1,33 +1,33 @@
 import React, {Component} from 'react'
-import {StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Animated} from 'react-native'
+import {StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Animated, Image} from 'react-native'
 import Product from './ProductComponent'
 const WIDTH = Dimensions.get('window').width
 const HEADER_SIZE = 52
 const LIGHT_GRAY_COLOR = '#E8E8E8'
 const GRAY_COLOR = '#C4C4C4'
+const IMAGE = require('../../../assets/product.jpg')
 export default class ShopCategorypage extends Component{
     constructor(props){
         super()
         this.state={
-            position0:0,
-            position1:0,
-            position2:0,
-            position3:0,
+            infoSize:{width:0, height:0},
+            isLoaded:false,
             page:0
         }
     }
+    positions = [0,0,0,0]
     handleChange = (field, text) => this.setState({ [field]:text} )
     _animatedValue = new Animated.Value(0)
     _onScroll = (event) => {
-        const {position0, position1, position2, position3, page} = this.state
+        const { page } = this.state
         const {y} = event.nativeEvent.contentOffset
-        if(y < position0)
+        if(y < this.positions[0])
             return page===0 ? null : this._handlePage(0)
-        else if(y < position1)
+        else if(y < this.positions[1])
             return page===1 ? null : this._handlePage(1)
-        else if(y < position2)
+        else if(y < this.positions[2])
             return page===2 ? null : this._handlePage(2)
-        else if(y < position3)
+        else if(y < this.positions[3])
             return page===3 ? null : this._handlePage(3)
         return page===4 ? null : this._handlePage(4)
     }
@@ -38,6 +38,12 @@ export default class ShopCategorypage extends Component{
             duration: 150,
             useNativeDriver:true
         }).start()
+    }
+    getInfoStyle=()=>{
+        const {infoSize} = this.state
+        return infoSize.width && infoSize.height ?
+            {width: infoSize.width, height:infoSize.height} :
+            {}
     }
     render(){
         return(
@@ -70,16 +76,16 @@ export default class ShopCategorypage extends Component{
 
                         <View style={styles.stickyHeaderContainer}>
                             <View style={{ flex:1, flexDirection:'row'}}>
-                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.state.position0})}>
+                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.positions[0]})}>
                                     <Text>상품설명</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.state.position1})}>
+                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.positions[1]})}>
                                     <Text>상품후기</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.state.position2})}>
+                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.positions[2]})}>
                                     <Text>상품문의</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.state.position3})}>
+                                <TouchableOpacity style={styles.stickyHeaderItem} onPress={()=>this.myScroll.scrollTo({y:this.positions[3]})}>
                                     <Text>배송/환불</Text>
                                 </TouchableOpacity>
                             </View>
@@ -88,13 +94,22 @@ export default class ShopCategorypage extends Component{
                             </Animated.View>
                         </View>
 
-                        <View style={{height:800, width:'100%', backgroundColor:'white'}} onLayout={({nativeEvent})=>{this.handleChange('position0',nativeEvent.layout.y - 40)}}/>
-                        <View style={{height:0}} onLayout={({nativeEvent})=>{this.handleChange('position1',nativeEvent.layout.y - 40)}}/>
-
-                        <ProductReview />
-
-                        <View style={{height:800, width:'100%', backgroundColor:'green'}} onLayout={({nativeEvent})=>{this.handleChange('position2',nativeEvent.layout.y - 40)}}/>
-                        <View style={{height:1500, width:'100%', backgroundColor:'red'}} onLayout={({nativeEvent})=>{this.handleChange('position3',nativeEvent.layout.y - 40)}}/>
+                        <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[0] = nativeEvent.layout.y - 40}}/>
+                        <View style={styles.infoContainer}>
+                            <Image style={[styles.infoImage, this.getInfoStyle()]}
+                                source={IMAGE}
+                                onLayout={(e)=>{
+                                    const {width, height} = e.nativeEvent.layout
+                                    const scale = WIDTH / width
+                                    this.handleChange('infoSize', {width:scale*width, height:scale*height})
+                                }}
+                            />
+                        </View>
+                        <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[1] = nativeEvent.layout.y - 40}}/>
+                        <ProductReview navigator={this.props.navigator}/>
+                        <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[2] = nativeEvent.layout.y - 40}}/>
+                        <ProductAsk navigator={this.props.navigator}/>
+                        <View style={{height:1500, width:'100%', backgroundColor:'red'}} onLayout={({nativeEvent})=>{this.positions[3] = nativeEvent.layout.y - 40}}/>
 
                     </ScrollView>
                 </View>
@@ -209,6 +224,14 @@ const styles = StyleSheet.create({
         borderRadius:15,
         backgroundColor:GRAY_COLOR,
         justifyContent:'center'
+    },
+    infoContainer:{
+        width:'100%',
+        paddingTop:20,
+        paddingBottom:20
+    },
+    infoImage:{
+        resizeMode:'contain',
     }
 })
 
@@ -230,7 +253,8 @@ class ProductReview extends Component{
                     <Text style={styles.informText}>{`텍스트 후기 ${'00'}지구자원 / 사진후기 ${'00'}지구자원 지급`}</Text>
                 </View>
                 <View style={styles.writeButtonContainer}>
-                    <TouchableOpacity style={styles.writeButton}>
+                    <TouchableOpacity style={styles.writeButton}
+                        onPress={()=>this.props.navigator.push('SendReviewPage')}>
                         <Text style={styles.writeButtonText}>후기 작성하기</Text>
                     </TouchableOpacity>
                 </View>
@@ -309,13 +333,13 @@ class ReviewComponent extends Component {
                 { type ? (
                     <View style={{width:'100%', height:300}}>
                         <ScrollView horizontal={true} pagingEnabled={true} style={{width:'100%', height:'100%'}}>
-                            <View style={{backgroundColor:'red', borderWidth:1, borderColor:'black', width:WIDTH-32}}>
+                            <View style={{backgroundColor:'red', width:WIDTH-32}}>
                                
                             </View>
-                            <View style={{backgroundColor:'blue', borderWidth:1, borderColor:'black', width:WIDTH-32}}>
+                            <View style={{backgroundColor:'blue', width:WIDTH-32}}>
 
                             </View>
-                            <View style={{backgroundColor:'green', borderWidth:1, borderColor:'black', width:WIDTH-32}}>
+                            <View style={{backgroundColor:'green', width:WIDTH-32}}>
 
                             </View>
                         </ScrollView>
@@ -503,4 +527,197 @@ const reviewStyles = StyleSheet.create({
     reviewListContainer:{
         paddingBottom:20
     }
+})
+
+class ProductAsk extends Component {
+    render(){
+        const styles = askStyles
+        return (
+            <View style={styles.container}>
+                <View style={[styles.buttonContainer, styles.borderBottom]}>
+                    <TouchableOpacity style={styles.buttonComponent} onPress={()=>this.props.navigator.push('SendAskPage')}>
+                        <Text style={{textAlign:'center'}}>상품 문의하기</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.linePadding} />
+                <View style={{paddingLeft:16, paddingRight:16}}>
+                    <ProductAskComponent type={true} text="질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용"/>
+                    <ProductAskComponent type={false}/>
+
+                    <ProductAskComponent type={true} text="질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용질문내용"/>
+                </View>
+            </View>
+        )
+    }
+}
+class ProductAskComponent extends Component {
+    render(){
+        const styles = askStyles
+        const text = this.props.text ? this.props.text : '내용내용 내용'
+        return (
+            <View style={styles.container}>
+                <View style={{flexDirection:'row', width:'100%'}}>
+                    <View style={styles.askHeadContainer}>
+                        <Text style={{fontSize:30}}>Q</Text>
+                    </View>
+                    <View style={styles.askMainContainer}>
+                        <View style={styles.askInfoContainer}>
+                            <View style={{flex:1, alignItems:'center', flexDirection:'row'}}>
+                                <View style={styles.askInfoNameContainer}>
+                                    <Text style={styles.askInfoNameText} numberOfLines={1}>닉네임닉네임닉네임닉</Text>
+                                </View>
+                                <View style={styles.askInfoDateContainer}>
+                                    <Text style={styles.askInfoDateText} numberOfLines={1}>2020.00.00</Text>
+                                </View>
+                                <View style={styles.askInfoStatusContainer}>
+                                    <View style={styles.askInfoStatusImage}>
+                                        <Text style={{textAlign:'center'}} >완료</Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.askInfoButtonContainer}>
+                                <TouchableOpacity style={styles.askInfoButton}>
+                                    <Text style={styles.askInfoButtonText}>수정</Text>
+                                </TouchableOpacity>
+                                <View>
+                                    <Text>|</Text>
+                                </View>
+                                <TouchableOpacity style={styles.askInfoButton}>
+                                    <Text style={styles.askInfoButtonText}>삭제</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View style={styles.askOptionContainer}>
+                            <Text style={styles.askOptionText}>옵션: 블랙</Text>
+                        </View>
+                        <View style={styles.askContentContainer}>
+                            <Text style={styles.askContentText}>{text}</Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={{flexDirection:'row', width:'100%'}}>
+
+                    <View style={styles.askHeadContainer}>
+                        <Text style={{fontSize:30}}>ㄴ</Text>
+                    </View>
+                    <View style={styles.askHeadContainer}>
+                        <Text style={{fontSize:30}}>A</Text>
+                    </View>
+                    <View style={styles.askMainContainer}>
+                        <View style={[styles.askContentContainer, {paddingLeft:5, paddingRight:5, backgroundColor:LIGHT_GRAY_COLOR}]}>
+                            <Text style={styles.askContentText}>답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용답변내용</Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.linePadding} />
+            </View>
+        )
+    }
+}
+
+const askStyles = StyleSheet.create({
+    container:{
+        width:'100%',
+        paddingTop:20
+    },
+    buttonContainer:{
+        width:'100%',
+        height:45,
+        justifyContent:'center',
+        paddingLeft:16,
+        paddingRight:16,
+        paddingTop:5,
+        paddingBottom:5
+    },
+    buttonComponent:{
+        borderRadius:10,
+        width:'100%',
+        height:'100%',
+        justifyContent:'center',
+        backgroundColor:GRAY_COLOR
+    },
+    borderBotom:{
+        borderBottomWidth:1,
+        borderBottomColor:GRAY_COLOR
+    },
+    askContainer:{
+        paddingLeft:16,
+        paddingRight:16
+    },
+    askHeadContainer:{
+        width:35,
+        alignItems:'center',
+        paddingRight:5
+    },
+    askMainContainer:{
+        flex:1
+    },
+    askInfoContainer:{
+        height:30,
+        flexDirection:'row'
+    },
+    askInfoNameContainer:{
+        flex:1
+    },
+    askInfoNameText:{
+        width:'100%',
+        fontSize:10
+    },
+    askInfoDateContainer:{
+        flex:1,
+        paddingLeft:5,
+        paddingRight:5
+    },
+    askInfoDateText:{
+        width:'100%',
+        fontSize:8
+    },
+    askInfoStatusContainer:{
+        width:65,
+        paddingLeft:5,
+        paddingRight:5,
+        paddingTop:5,
+        paddingBottom:5,
+        justifyContent:'center'
+    },
+    askInfoStatusImage:{
+        width:'100%',
+        height:'100%',
+        backgroundColor:LIGHT_GRAY_COLOR
+    },
+    askInfoButtonContainer:{
+        width:80,
+        flexDirection:'row',
+        alignItems:'center'
+    },
+    askInfoButton:{
+        flex:1,
+        justifyContent:'center',
+        alignItems:'center'
+    },
+    askInfoButtonText:{
+        fontSize:10,
+        textAlign:'center'
+    },
+    askOptionContainer:{
+        paddingTop:4,
+        paddingBottom:4
+    },
+    askOptionText:{
+        fontSize:12
+    },
+    askContentContainer:{
+        paddingTop:5,
+        paddingBottom:5
+    },
+    askContentText:{
+        fontSize:14
+    },
+
+    linePadding:{
+        width:'100%',
+        height:20,
+        borderBottomColor:LIGHT_GRAY_COLOR,
+        borderBottomWidth:1
+    },
 })

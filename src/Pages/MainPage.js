@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import * as Linking from 'expo-linking'
-import {View, TouchableOpacity, Text} from 'react-native'
+import {View, TouchableOpacity, Text, Dimensions} from 'react-native'
 import {ParallelNavigator, Route, CoveredNavigator} from '../Navigation'
 import {MainHeader} from '../Header'
 import ShopMainpage from './Shop/Shop_Mainpage'
@@ -16,7 +16,7 @@ export default class MainContent extends Component{
     }
     componentDidMount(){
         Linking.addEventListener('url', this._handleURLListener)
-        this.props.navigator.push('OnBoard')
+        //this.props.navigator.push('OnBoard')
     }
     componentWillUnmount(){
         Linking.removeEventListener('url', this._handleURLListener)
@@ -38,7 +38,7 @@ export default class MainContent extends Component{
                     <Route key="Test4" component={Test4}/>
                     <Route key="Test5" component={Test5}/>
                 </Navigator>
-                <View style={{position:'absolute', bottom:0, width:'100%', height:84, paddingBottom:20, backgroundColor:'#fff'}}>
+                <View style={{position:'absolute', top:Dimensions.get('window').height-120, width:'100%', height:84, paddingBottom:20, backgroundColor:'#fff'}}>
                     {navigatorHandler.NavigationBox ? navigatorHandler.NavigationBox : null}
                 </View>
             </View>
