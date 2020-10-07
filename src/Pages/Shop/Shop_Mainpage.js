@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Keyboard} from 'react-native'
+import {StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Keyboard, ImagePropTypes} from 'react-native'
 import Product from './ProductComponent'
 import {Clayful} from '../../Network'
 const LIGHT_GRAY_COLOR = '#E8E8E8'
@@ -17,11 +17,11 @@ export default class ShopMainpage extends Component {
         }
     }
     componentDidMount(){
-        this.getProducts()
+        this._loadProducts()
     }
-    getProducts = async()=>{
+    _loadProducts = async()=>{
         const list = await Clayful.getDisplayItems()
-        console.warn(list)
+        this.handleChange('displayedProducts', list)
     }
     closeSearch = ()=>{
         Keyboard.dismiss()
@@ -31,6 +31,14 @@ export default class ShopMainpage extends Component {
     render(){
         const {navigation} =this.props.handler
         const {isOpenSearch} = this.state
+        const categories = this.state.displayedProducts.map( (category, index) =>
+            (<Category index={index} size={132} key={index}
+                id={category.collectionID}
+                title={category.collectionName}
+                products={category.products}
+                navigator={navigation}
+                onClick={(config)=>navigation.push('ShopProductPage', config)}
+            />))
         return (
             <View style={styles.container}>
                 {/* Header */}
@@ -119,9 +127,6 @@ export default class ShopMainpage extends Component {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        <Category title="새로 들어온 상품" index={0} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="인기상품" index={1} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="MD's Pick!" index={2} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
                         <View style={styles.eventBanner}>
                             <View style={styles.eventBannerImageContainer}>
 
@@ -130,11 +135,7 @@ export default class ShopMainpage extends Component {
                                 <Text style={styles.eventBannerText}>이벤트 명</Text>
                             </View>
                         </View>
-                        <Category title="주방용품" index={4} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="욕실용품" index={5} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="사무용품" index={6} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="리빙용품" index={7} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
-                        <Category title="유아용품" index={8} size={132} navigator={navigation} onClick={()=>navigation.push('ShopProductPage')}/>
+                        {categories}
                         <View style={{height:84}} />
                     </ScrollView>
                     {!isOpenSearch ? null :
@@ -201,7 +202,7 @@ const Category = (props)=>(
             </View>
 
             <TouchableOpacity style={styles.groupHeaderOptionContainer}
-                onPress={()=>props.navigator.push('ShopCategoryPage', {title:props.title})}>
+                onPress={()=>props.navigator.push('ShopCategoryPage', {id:props.id, title:props.title})}>
                 <Text style={styles.groupHeaderOption}>
                     전체보기
                 </Text>
@@ -209,11 +210,16 @@ const Category = (props)=>(
         </View>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
             <View style={{width:16}}/>
-            <Product size={props.size} onClick={props.onClick}/>
-            <Product size={props.size} onClick={props.onClick}/>
-            <Product size={props.size} onClick={props.onClick}/>
-            <Product size={props.size} onClick={props.onClick}/>
-            <Product size={props.size} onClick={props.onClick}/>
+            {props.products.map(product=>(
+                <Product size={props.size} onClick={props.onClick}
+                    id={product._id}
+                    name={product.name}
+                    price={product.price}
+                    thumbnail={product.thumbnail}
+                    rating={product.rating}
+                    //shipping
+                />
+            ))}
             <View style={{width:8}}/>
         </ScrollView>
     </View>

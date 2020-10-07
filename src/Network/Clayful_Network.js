@@ -16,7 +16,7 @@ export default class ClayfulNetwork extends Handler{
     _getProductByCollectionID = async(CollectionID)=>{
         const response = await fetch(`${CLAYFUL}/v1/products?collection=${CollectionID}`,{ headers: this.headers })
         const data = await response.json()
-        return data.map(item=>item._id)
+        return data
     }
     getDisplayItems = async()=>{
         const response = await fetch(`${CLAYFUL}/v1/collections`,{ headers: this.headers })
@@ -29,11 +29,19 @@ export default class ClayfulNetwork extends Handler{
                 // display value is upper than 0
                 [...prev, {
                     collectionID: collection._id,
+                    collectionName: collection.name,
                     display: collection.meta.display.raw,
                     products:[]
                 } ], [])
         const products = await this._getProductsByCollectionList(collectionsForDisplay)
         products.map( (product, index) => collectionsForDisplay[index].products = product)
         return collectionsForDisplay
+    }
+    getProductByID = async(productID) =>{
+        if(!productID || typeof productID !== 'string')
+            return {}
+        const response = await fetch(`${CLAYFUL}/v1/products/${productID}`,{ headers: this.headers })
+        const data = await response.json()
+        return data
     }
 }

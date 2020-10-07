@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Animated, Image} from 'react-native'
 import Product from './ProductComponent'
+import {Clayful} from '../../Network'
 const WIDTH = Dimensions.get('window').width
 const HEADER_SIZE = 52
 const LIGHT_GRAY_COLOR = '#E8E8E8'
@@ -10,13 +11,21 @@ export default class ShopCategorypage extends Component{
     constructor(props){
         super()
         this.state={
+            product:{},
             infoSize:{width:0, height:0},
             isLoaded:false,
             page:0
         }
     }
+    componentDidMount(){
+        this._loadProductInfo()
+    }
     positions = [0,0,0,0]
     handleChange = (field, text) => this.setState({ [field]:text} )
+    _loadProductInfo = async ()=>{
+        const productInfo = await Clayful.getProductByID(this.props.config.id)
+        this.handleChange('product', productInfo)
+    }
     _animatedValue = new Animated.Value(0)
     _onScroll = (event) => {
         const { page } = this.state
@@ -46,6 +55,7 @@ export default class ShopCategorypage extends Component{
             {}
     }
     render(){
+        const {product} = this.state
         return(
             <View style={{flex:1, backgroundColor:'#fff'}}>
                 {/* Header */}
@@ -71,8 +81,17 @@ export default class ShopCategorypage extends Component{
                         ref={ ref => this.myScroll = ref }
                         onScroll={this._onScroll}
                         stickyHeaderIndices={[1]} >
-
-                        <Product fullsize={true}/>
+                        
+                        {product.name ? 
+                        (<Product fullsize={true}
+                            id={product._id}
+                            name={product.name}
+                            price={product.price}
+                            thumbnail={product.thumbnail}
+                            rating={product.rating}
+                            //shipping
+                        />) : null}
+                        
 
                         <View style={styles.stickyHeaderContainer}>
                             <View style={{ flex:1, flexDirection:'row'}}>
