@@ -23,7 +23,13 @@ export default class MainContent extends Component{
     }
     _handleURLListener = ({url})=>{
         const {path, queryParams} = Linking.parse(url)
-        console.warn(url, path, queryParams)
+        switch(path){
+            case 'product':
+                const productID = queryParams.id
+                this.props.navigator.push('ShopProductPage', {id:productID})
+            default:
+                return;
+        }
     }
     handleChange = (field, text) => this.setState({ [field]:text} )
     registerNavigator = (handlers) => this.handleChange('navigatorHandler', handlers)

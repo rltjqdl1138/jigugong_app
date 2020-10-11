@@ -11,10 +11,9 @@ class Product extends Component {
     createUrlLink=(ID)=>{
         const link = Linking.makeUrl('product',{id:ID})
         Sharing.shareAsync(link)
-        console.warn(link)
     }
     render(){
-        const {size, fullsize, onClick, name, price, thumbnail, rating, id} = this.props
+        const {size, fullsize, onClick, name, price, thumbnail, rating, id, brand} = this.props
         const percentage = Math.floor(100 * price.sale.raw / price.original.raw)
         const imgSize = size ? size : DEFAULT_IMG_SIZE
         return (
@@ -26,10 +25,12 @@ class Product extends Component {
                     </View>
                     <View style={{padding : fullsize ? 16 : 0}}>
                         <View style={styles.groupItemSubtitleContainer}>
-                            <Text style={styles.groupItemSubtitleText}>브랜드명</Text>
+                            <Text style={styles.groupItemSubtitleText}>
+                                {brand && typeof brand.name === 'string' ? brand.name : ''}
+                            </Text>
                         </View>
                         <View style={styles.groupItemTitleContainer}>
-                            <Text style={[styles.groupItemTitleText,{fontSize: 18}]}>{name}</Text>
+                            <Text style={[styles.groupItemTitleText,{fontSize: fullsize ? 14: 12}]}>{name}</Text>
                         </View>
                         <View style={styles.groupItemCostContainer}>
                             <View style={styles.groupItemCostDiscount}>
@@ -48,7 +49,10 @@ class Product extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <Rating average={rating.average.raw} count={rating.count.raw}/>
+
+                        <View style={styles.groupItemStarContainer}>
+                            <Rating average={rating.average.raw} count={rating.count.raw} size={12} align="left"/>
+                        </View>
                         {!fullsize ? null :
                             (<TouchableOpacity style={{position:'absolute', width:24, height:24, right:20, top:30,backgroundColor:'#fff', borderWidth:1, borderColor:'black', justifyContent:'center'}}
                                 onPress={()=>this.createUrlLink(this.props.id)}>
@@ -63,43 +67,45 @@ class Rating extends Component{
     renderFillStars = (num)=>{
         let starList = []
         for(let i=0; i<num; i++)
-            starList = [...starList, (<View key={i} style={styles.groupItemStarFillImage}/>)]
+            starList = [...starList, (<View key={i} style={[styles.groupItemStarFillImage,{width:this.props.size, height:this.props.size}]}/>)]
         return starList
     }
     renderEmptyStars = (num)=>{
         let starList = []
         for(let i=0; i<num; i++)
-            starList = [...starList, (<View key={i} style={styles.groupItemStarEmptyImage}/>)]
+            starList = [...starList, (<View key={i} style={[styles.groupItemStarEmptyImage,{width:this.props.size, height:this.props.size}]}/>)]
         return starList
     }
     renderMiddleStar = (num) =>{
         if(num === 0) return null;
         return (
-            <View style={[styles.groupItemStarEmptyImage, {flexDirection:'row'}]}>
+            <View style={[styles.groupItemStarEmptyImage, {flexDirection:'row', width:this.props.size, height:this.props.size}]}>
                 <View style={{backgroundColor:'yellow', flex:num}} />
                 <View style={{backgroundColor:'gray', flex:10-num}} />
             </View>
         )
     }
     render(){
-        const {average, count} = this.props
+        const {average, count, align} = this.props
         const FillStars = Math.floor(average)
         const EmptyStars = Math.floor(5-average)
         const middleStar = Math.round((average-FillStars)*10)
         return (
-            <View style={styles.groupItemStarContainer}>
+            <View style={{width:'100%', height:'100%', flexDirection:'row', alignItems:'center', justifyContent: align ? align : 'center'}}>
                 {this.renderFillStars(FillStars)}
                 {this.renderMiddleStar(middleStar) }
                 {this.renderEmptyStars(EmptyStars)}
-                <View style={styles.groupItemStarCountContainer}>
-                    <Text style={styles.groupItemStarCountText}>{`(${count})`}</Text>
-                </View>
+                {typeof count === 'number' ?
+                    (<View style={styles.groupItemStarCountContainer}>
+                        <Text style={styles.groupItemStarCountText}>{`(${count})`}</Text>
+                    </View>): null}
             </View>
         )
     }
 }
     
 export default Product
+exports.Rating = Rating
 const styles = StyleSheet.create({
     groupItem:{
         width:142,
@@ -126,7 +132,9 @@ const styles = StyleSheet.create({
         justifyContent:'center'
     },
     groupItemTitleText:{
-        fontSize:16
+        width:'100%',
+        fontSize:12,
+        overflow:'hidden'
     },
     groupItemCostContainer:{
         height:18,
@@ -161,16 +169,12 @@ const styles = StyleSheet.create({
         alignItems:'center'
     },
     groupItemStarFillImage:{
-        width:12,
-        height:12,
         backgroundColor:'yellow',
         borderWidth:1,
         borderColor:'gray',
         marginRight:2
     },
     groupItemStarEmptyImage:{
-        width:12,
-        height:12,
         backgroundColor:'gray',
         borderWidth:1,
         borderColor:'gray',

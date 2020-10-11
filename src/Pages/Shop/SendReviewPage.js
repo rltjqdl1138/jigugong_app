@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {StyleSheet, View, Text, ScrollView, Image, TextInput, Keyboard} from 'react-native'
 import {SimpleHeader} from '../../Header'
+import {Clayful} from '../../Network'
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -11,17 +12,29 @@ export default class SendReviewPage extends Component{
         this.state = {
             imageList:[],
             reviewText:'',
-            keyboardSpaceHeight:0
+            keyboardSpaceHeight:0,
+            isLoaded:true,
+            product:{}
         }
     }
     componentDidMount() {
 		this._keyboardWillShowSubscription = Keyboard.addListener('keyboardDidShow', (e) => this._keyboardWillShow(e));
-		this._keyboardWillHideSubscription = Keyboard.addListener('keyboardDidHide', (e) => this._keyboardWillHide(e));
+        this._keyboardWillHideSubscription = Keyboard.addListener('keyboardDidHide', (e) => this._keyboardWillHide(e));
+        
+        if(!this.props.config.productID || this.props.config.productID === this.state.product._id || !this.state.isLoaded)
+            return;
+        this.handleChange('isLoaded', false)
+        this._loadProductInfo(this.props.config.productID)
 	}
 	componentWillUnmount() {
 		this._keyboardWillShowSubscription.remove();
 		this._keyboardWillHideSubscription.remove();
-	}
+    }
+    _loadProductInfo = async (id)=>{
+        const productInfo = await Clayful.getProductByID(id)
+        this.handleChange('product', productInfo)
+        this.handleChange('isLoaded', true)
+    }
 	_keyboardWillShow = (e)=> this.handleChange('keyboardSpaceHeight', e.endCoordinates.height)
 	_keyboardWillHide = (e)=> this.handleChange('keyboardSpaceHeight', 0)
     handleChange = (field, text) => this.setState({ [field]:text} )
@@ -75,7 +88,7 @@ export default class SendReviewPage extends Component{
                                 <Text>브랜드명</Text>
                             </View>
                             <View style={styles.itemTextContainer}>
-                                <Text>상품명</Text>
+                                <Text>{this.state.product.name}</Text>
                             </View>
                             <View style={styles.itemTextContainer}>
                                 

@@ -32,7 +32,7 @@ export default class ShopMainpage extends Component {
         const {navigation} =this.props.handler
         const {isOpenSearch} = this.state
         const categories = this.state.displayedProducts.map( (category, index) =>
-            (<Category index={index} size={132} key={index}
+            (<Category Key={index} index={index} size={132} 
                 id={category.collectionID}
                 title={category.collectionName}
                 products={category.products}
@@ -193,7 +193,7 @@ export default class ShopMainpage extends Component {
     }
 }
 const Category = (props)=>(
-    <View style={[styles.groupContainer, { height: props.size ? props.size + 145 : null, backgroundColor: props.index%2 === 0 ? BACKGROUND_GRAY_COLOR : '#fff'}]}>
+    <View key={props.Key} style={[styles.groupContainer, { height: props.size ? props.size + 145 : null, backgroundColor: props.index%2 === 0 ? BACKGROUND_GRAY_COLOR : '#fff'}]}>
         <View style={styles.groupHeader}>
             <View style={styles.groupHeaderTitleContainer}>
                 <Text style={styles.groupHeaderTitle}>
@@ -211,7 +211,8 @@ const Category = (props)=>(
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
             <View style={{width:16}}/>
             {props.products.map(product=>(
-                <Product size={props.size} onClick={props.onClick}
+                <Product key={product._id} size={props.size} onClick={props.onClick}
+                    brand={product.brand}
                     id={product._id}
                     name={product.name}
                     price={product.price}

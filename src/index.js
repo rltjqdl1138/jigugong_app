@@ -9,6 +9,7 @@ import ShopProductpage from './Pages/Shop/Shop_Productpage'
 import LoginPage from './Pages/LoginPage'
 import SendReviewPage from './Pages/Shop/SendReviewPage'
 import SendAskPage from './Pages/Shop/SendAskPage'
+import PaymentPage from './Pages/Shop/PaymentPage'
 import OnBoard from './Pages/OnBoard'
 import Menu from './Menu'
 
@@ -42,6 +43,7 @@ export default class App extends Component{
                     <Route name="ShopProductPage" component={ShopProductpage}/>
                     <Route name="SendReviewPage" component={SendReviewPage}/>
                     <Route name="SendAskPage" component={SendAskPage}/>
+                    <Route name="PaymentPage" component={PaymentPage} />
                 </CoveredNavigator>
                 <Menu registerHandler={this.registerMenu} handler={handler}/>
             </View>

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {StyleSheet, View, Text, TouchableOpacity, ScrollView, Dimensions, Animated, Image} from 'react-native'
-import Product from './ProductComponent'
+import Product, {Rating} from './ProductComponent'
 import {Clayful} from '../../Network'
 const WIDTH = Dimensions.get('window').width
 const HEADER_SIZE = 52
@@ -12,7 +12,7 @@ export default class ShopCategorypage extends Component{
         super()
         this.state={
             product:{},
-            infoSize:{width:0, height:0},
+            catalogSizes:[],
             isLoaded:false,
             page:0
         }
@@ -25,7 +25,15 @@ export default class ShopCategorypage extends Component{
     _loadProductInfo = async ()=>{
         const productInfo = await Clayful.getProductByID(this.props.config.id)
         this.handleChange('product', productInfo)
+        const sizePromise = productInfo.catalogs.map(catalog=> catalog.image&&catalog.image.url ?this._calculateCatalogSize(catalog.image.url) : {width:0, height:0})
+        const result = await Promise.all(sizePromise)
+        this.handleChange('catalogSizes', result)
     }
+    _calculateCatalogSize = (url) => new Promise((resolve, reject)=>
+        Image.getSize(url,
+            (width, height)=>resolve({width, height},
+            (error)=>resolve({width:0, height:0}))
+        ))
     _animatedValue = new Animated.Value(0)
     _onScroll = (event) => {
         const { page } = this.state
@@ -48,11 +56,13 @@ export default class ShopCategorypage extends Component{
             useNativeDriver:true
         }).start()
     }
-    getInfoStyle=()=>{
-        const {infoSize} = this.state
-        return infoSize.width && infoSize.height ?
-            {width: infoSize.width, height:infoSize.height} :
-            {}
+    getInfoStyle=(index)=>{
+        const {catalogSizes} = this.state
+        const size = catalogSizes[index]
+        if(!size || !size.width || !size.height)
+            return {width:0, height:0}
+        const scale = WIDTH / size.width
+        return {width: WIDTH, height:size.height * scale}
     }
     render(){
         const {product} = this.state
@@ -84,6 +94,7 @@ export default class ShopCategorypage extends Component{
                         
                         {product.name ? 
                         (<Product fullsize={true}
+                            brand={product.brand}
                             id={product._id}
                             name={product.name}
                             price={product.price}
@@ -115,17 +126,17 @@ export default class ShopCategorypage extends Component{
 
                         <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[0] = nativeEvent.layout.y - 40}}/>
                         <View style={styles.infoContainer}>
-                            <Image style={[styles.infoImage, this.getInfoStyle()]}
-                                source={IMAGE}
-                                onLayout={(e)=>{
-                                    const {width, height} = e.nativeEvent.layout
-                                    const scale = WIDTH / width
-                                    this.handleChange('infoSize', {width:scale*width, height:scale*height})
-                                }}
-                            />
+                            {!product.catalogs || !product.catalogs.length ? null :
+                                product.catalogs.map((catalog, index)=>{
+                                return catalog && catalog.image && catalog.image.url ? (
+                                    <Image key={index}
+                                        style={[styles.infoImage, this.getInfoStyle(index)]}
+                                        source={{uri: catalog.image.url}}
+                                />) : null}
+                            )}
                         </View>
                         <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[1] = nativeEvent.layout.y - 40}}/>
-                        <ProductReview navigator={this.props.navigator}/>
+                        <ProductReview navigator={this.props.navigator} rating={product.rating} productID={product._id}/>
                         <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[2] = nativeEvent.layout.y - 40}}/>
                         <ProductAsk navigator={this.props.navigator}/>
                         <View style={{height:1500, width:'100%', backgroundColor:'red'}} onLayout={({nativeEvent})=>{this.positions[3] = nativeEvent.layout.y - 40}}/>
@@ -141,7 +152,7 @@ export default class ShopCategorypage extends Component{
                         </View>
                     </TouchableOpacity>
                     <View style={styles.quickPurchaseContainer}>
-                        <TouchableOpacity style={styles.quickPurchaseButton}>
+                        <TouchableOpacity style={styles.quickPurchaseButton} onPress={()=>this.props.navigator.push('PaymentPage')}>
                             <Text style={{fontSize:20, textAlign:'center'}}>구매하기</Text>
                         </TouchableOpacity>
                     </View>
@@ -259,11 +270,15 @@ class ProductReview extends Component{
     constructor(props){
         super()
         this.state={
-            navigator:'left'
+            navigator:'left',
+            product:{},
+            isLoaded:true
         }
     }
     handleChange = (field, text) => this.setState({ [field]:text} )
     render(){
+        const rating = this.props.rating ? this.props.rating :
+            { count:{raw:0}, sum:{raw:0}, average:{raw:0} }
         const {navigator} = this.state
         const styles = reviewStyles
         return (
@@ -273,28 +288,23 @@ class ProductReview extends Component{
                 </View>
                 <View style={styles.writeButtonContainer}>
                     <TouchableOpacity style={styles.writeButton}
-                        onPress={()=>this.props.navigator.push('SendReviewPage')}>
+                        onPress={()=>this.props.navigator.push('SendReviewPage', {productID:this.props.productID})}>
                         <Text style={styles.writeButtonText}>후기 작성하기</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.linePadding} />
                 <View style={styles.starsContainer}>
                     <View style={styles.starsInfoContainer}>
-
                         <View style={styles.starsTextContainer}>
                             <Text>
-                                000건의 후기
+                                {`${rating.count.raw} 건의 후기`}
                             </Text>
                         </View>
                         <View style={styles.starsScoreContainer}>
-                            <Text style={styles.starsScoreText}>4.5</Text>
+                            <Text style={styles.starsScoreText}>{`${Number.parseFloat(rating.average.raw).toFixed(1)}`}</Text>
                         </View>
                         <View style={styles.starsRankContainer}>
-                            <View style={styles.starsRankImage} />
-                            <View style={styles.starsRankImage} />
-                            <View style={styles.starsRankImage} />
-                            <View style={styles.starsRankImage} />
-                            <View style={styles.starsRankImage} />
+                            <Rating average={rating.average.raw} size={30}/>
                         </View>
 
                     </View>
