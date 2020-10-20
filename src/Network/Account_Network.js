@@ -14,6 +14,7 @@ export default class AccountNetworkHandler extends Handler{
      *   @ parmas     {String}    value
      * 
     **/
+   tempToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJsdGpxZGwxMTM4QG5hdmVyLmNvbSIsInBsYXRmb3JtIjoib3JpZ2luYWwiLCJpYXQiOjE2MDI2MzE1MDAsImlzcyI6ImppZ3Vnb25nLmNvbSJ9.0zm5oiWQnN0usW5pJ9tkycBGjPw4fjmP1HY3TQxqAE0'
     CheckDuplicated = async(key, value)=>{
         const {domain} = this
         try{

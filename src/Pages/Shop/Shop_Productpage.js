@@ -12,29 +12,33 @@ export default class ShopCategorypage extends Component{
         super()
         this.state={
             product:{},
-            catalogSizes:[],
+            informationSizes:[],
+            informationImages:[],
             isLoaded:false,
+            images:[],
             page:0
         }
     }
     componentDidMount(){
         this._loadProductInfo()
     }
+    _animatedValue = new Animated.Value(0)
     positions = [0,0,0,0]
     handleChange = (field, text) => this.setState({ [field]:text} )
     _loadProductInfo = async ()=>{
         const productInfo = await Clayful.getProductByID(this.props.config.id)
         this.handleChange('product', productInfo)
-        const sizePromise = productInfo.catalogs.map(catalog=> catalog.image&&catalog.image.url ?this._calculateCatalogSize(catalog.image.url) : {width:0, height:0})
-        const result = await Promise.all(sizePromise)
-        this.handleChange('catalogSizes', result)
+        const informationImages = productInfo.description.split('<img src="')
+            .reduce( (prev, html) => html[0] === '<' ? prev : [...prev, (html.split('"'))[0] ], [])
+        informationImages.reduce( (prevPromise, url, index)=>
+            prevPromise.then(()=>this._calculateInformationSize(url, index))
+        , Promise.resolve() )
     }
-    _calculateCatalogSize = (url) => new Promise((resolve, reject)=>
-        Image.getSize(url,
-            (width, height)=>resolve({width, height},
-            (error)=>resolve({width:0, height:0}))
-        ))
-    _animatedValue = new Animated.Value(0)
+    _calculateInformationSize = (url, index) => new Promise((resolve, reject)=>
+        Image.getSize(url, (width, height)=>{
+                this.handleChange('informationImages',[...this.state.informationImages, {url, width, height, index}])
+                resolve()
+            }, (error)=>resolve({width:0, height:0})))
     _onScroll = (event) => {
         const { page } = this.state
         const {y} = event.nativeEvent.contentOffset
@@ -57,15 +61,15 @@ export default class ShopCategorypage extends Component{
         }).start()
     }
     getInfoStyle=(index)=>{
-        const {catalogSizes} = this.state
-        const size = catalogSizes[index]
+        const {informationImages} = this.state
+        const size = informationImages[index]
         if(!size || !size.width || !size.height)
             return {width:0, height:0}
         const scale = WIDTH / size.width
         return {width: WIDTH, height:size.height * scale}
     }
     render(){
-        const {product} = this.state
+        const {product, informationImages} = this.state
         return(
             <View style={{flex:1, backgroundColor:'#fff'}}>
                 {/* Header */}
@@ -126,13 +130,15 @@ export default class ShopCategorypage extends Component{
 
                         <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[0] = nativeEvent.layout.y - 40}}/>
                         <View style={styles.infoContainer}>
-                            {!product.catalogs || !product.catalogs.length ? null :
-                                product.catalogs.map((catalog, index)=>{
-                                return catalog && catalog.image && catalog.image.url ? (
+                            {!informationImages || !informationImages.length ?(
+                            <View>
+                                <Text style={{fontSize:20, textAlign:'center'}}>로딩중..</Text>
+                            </View>) :
+                                informationImages.map((image, index)=>(
                                     <Image key={index}
                                         style={[styles.infoImage, this.getInfoStyle(index)]}
-                                        source={{uri: catalog.image.url}}
-                                />) : null}
+                                        source={{uri: image.url}}
+                                />)
                             )}
                         </View>
                         <View style={{height:0}} onLayout={({nativeEvent})=>{this.positions[1] = nativeEvent.layout.y - 40}}/>
@@ -257,7 +263,7 @@ const styles = StyleSheet.create({
     },
     infoContainer:{
         width:'100%',
-        paddingTop:20,
+        paddingTop:0,
         paddingBottom:20
     },
     infoImage:{

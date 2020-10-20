@@ -32,7 +32,7 @@ export default class ShopMainpage extends Component {
         const {navigation} =this.props.handler
         const {isOpenSearch} = this.state
         const categories = this.state.displayedProducts.map( (category, index) =>
-            (<Category Key={index} index={index} size={132} 
+            (<Category key={index} index={index} size={132} 
                 id={category.collectionID}
                 title={category.collectionName}
                 products={category.products}

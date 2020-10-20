@@ -10,6 +10,8 @@ import LoginPage from './Pages/LoginPage'
 import SendReviewPage from './Pages/Shop/SendReviewPage'
 import SendAskPage from './Pages/Shop/SendAskPage'
 import PaymentPage from './Pages/Shop/PaymentPage'
+import RegisterCardPage from './Pages/Shop/RegisterCardPage'
+import FindPostCodePage from './Pages/Shop/FindPostCodePage'
 import OnBoard from './Pages/OnBoard'
 import Menu from './Menu'
 
@@ -39,14 +41,17 @@ export default class App extends Component{
                     <Route name="SignupPage" component={SignupPageFirst}/>
                     <Route name="SignupPage2" component={SignupPageSecond}/>
                     <Route name="LoginPage" component={LoginPage}/>
-                    <Route name="ShopCategoryPage" component={ShopCategorypage}/>
                     <Route name="ShopProductPage" component={ShopProductpage}/>
                     <Route name="SendReviewPage" component={SendReviewPage}/>
                     <Route name="SendAskPage" component={SendAskPage}/>
                     <Route name="PaymentPage" component={PaymentPage} />
+                    <Route name="RegisterCardPage" component={RegisterCardPage} />
+                    <Route name="FindPostCodePage" component={FindPostCodePage}/>
                 </CoveredNavigator>
                 <Menu registerHandler={this.registerMenu} handler={handler}/>
             </View>
         )
     }
 }
+
+//<Route name="ShopCategoryPage" component={ShopCategorypage}/>
