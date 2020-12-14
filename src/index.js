@@ -4,7 +4,7 @@ import {CoveredNavigator, Route} from './Navigation'
 import MainPage from './Pages/MainPage'
 import {SignupPageFirst, SignupPageSecond} from './Pages/SignupPage'
 
-import ShopCategorypage from './Pages/Shop/Shop_Categorypage'
+//import ShopCategorypage from './Pages/Shop/Shop_Categorypage'
 import ShopProductpage from './Pages/Shop/Shop_Productpage'
 import LoginPage from './Pages/LoginPage'
 import SendReviewPage from './Pages/Shop/SendReviewPage'

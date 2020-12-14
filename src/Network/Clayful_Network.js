@@ -1,9 +1,6 @@
 const CLAYFUL = 'https://api.clayful.io'
-import Handler from './_Network'
-export default class ClayfulNetwork extends Handler{
-    constructor(){
-        super()
-    }
+export default class ClayfulNetwork{
+    // 임시 계정의 authentication token
     auth = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6ImZkYjYyMzI0OWQ5NzQ5MjU2NTdjMWUxNDdjZTJkODJlYzRmNDNhNGRjZTJkYWU3NzAwY2JhN2U4YmU1MTM2NzgiLCJyb2xlIjoiY3VzdG9tZXIiLCJpYXQiOjE2MDI0MjQzMDQsImV4cCI6MTYwMzAyOTEwNCwic3ViIjoiVEc1VFRTWjhKNERCIn0.KE8n_HVRs_dhAaiMiBKIfU32hBKfBZpgpxZNOwtJtaQ'
     headers = {
         'Accept-Encoding':'gzip',
@@ -16,14 +13,15 @@ export default class ClayfulNetwork extends Handler{
         return Promise.all(functions)
     }
     _getProductByCollectionID = async(CollectionID)=>{
+        // Collection (카테고리)
         const response = await fetch(`${CLAYFUL}/v1/products?collection=${CollectionID}`,{ headers: this.headers })
-        const data = await response.json()
-        return data
+        return await response.json()
     }
     getDisplayItems = async()=>{
         const response = await fetch(`${CLAYFUL}/v1/collections`,{ headers: this.headers })
         const data = await response.json()
         data.sort((left, right) => left.meta.display.raw - right.meta.display.raw )
+        //display field는 custom field입니다.
         const collectionsForDisplay = data.reduce( (prev, collection) => 
             !collection.meta.display.raw ?
                 // display value is 0
@@ -46,6 +44,7 @@ export default class ClayfulNetwork extends Handler{
         const data = await response.json()
         return data
     }
+    // 카트에서 아이템 목록 가져오기
     getItemFromCart = async()=>{
         const response = await fetch(`${CLAYFUL}/v1/me/cart`,{ headers: this.headers, method:'POST' })
         const data = await response.json()
